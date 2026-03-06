@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro.EditorUtilities;
 using UnityEngine;
 
 public class KeyHolder : MonoBehaviour
@@ -27,16 +29,9 @@ public class KeyHolder : MonoBehaviour
         return keyList.Contains(keyType);
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        Key key = other.GetComponent<Key>();
-        if (key != null)
-        {
-            AddKey(key.GetKeyType());
-            Destroy(key.gameObject);
-        }
 
-        KeyDoor keyDoor = other.GetComponent<KeyDoor>();
+
+       /* KeyDoor keyDoor = other.GetComponent<KeyDoor>();
         if (keyDoor != null)
         {
             if (ContainsKey(keyDoor.GetKeyType()))
@@ -44,6 +39,6 @@ public class KeyHolder : MonoBehaviour
                 keyDoor.OpenDoor();
             }
         }
-    }
+    }*/
 }
 
