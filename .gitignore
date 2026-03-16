@@ -5,19 +5,19 @@
 [Bb]uild/
 [Bb]uilds/
 [Ll]ogs/
+
+# User settings
 UserSettings/
 
-# MemoryCaptures
+# Memory captures
 MemoryCaptures/
 
-# Asset meta data should only be ignored when the corresponding asset is ignored
-*.pidb
-*.booproj
-*.svd
-*.pdb
-
-# Visual Studio / Rider
+# IDE
 .vs/
+.idea/
+.vscode/
+
+# Visual Studio files
 *.csproj
 *.unityproj
 *.sln
@@ -27,12 +27,6 @@ MemoryCaptures/
 *.userprefs
 *.pidb
 *.booproj
-
-# JetBrains Rider
-.idea/
-
-# VS Code
-.vscode/
 
 # OS
 .DS_Store
