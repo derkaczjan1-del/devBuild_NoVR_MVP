@@ -307,6 +307,8 @@ namespace StarterAssets
         {
             MoveSpeed = 4f;
             SprintSpeed = 6f;
+            TopClamp = 89f;
+            BottomClamp = -89f;
         }
     }
 }
