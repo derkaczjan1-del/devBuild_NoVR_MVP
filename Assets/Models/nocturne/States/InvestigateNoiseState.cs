@@ -4,6 +4,7 @@ public class InvestigateNoiseState : BaseState
 {
     public override void Enter()
     {
+        Debug.Log("Investigating noise");
         //idzie w kierunku ostatniej znanej pozycji gracza
         enemy.Agent.SetDestination(enemy.LastKnownPlayerPosition);
     }

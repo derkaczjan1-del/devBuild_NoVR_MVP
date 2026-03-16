@@ -8,6 +8,7 @@ public class PatrolState : BaseState
     public int waypointIndex;
     public override void Enter()
     {
+        Debug.Log("Patrolling");
         enemy.Agent.isStopped = false;
         enemy.WasRecentlySuspicious = false;
     }

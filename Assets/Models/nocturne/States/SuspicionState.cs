@@ -6,6 +6,7 @@ public class SuspicionState : BaseState
 
     public override void Enter()
     {
+        Debug.Log("Suspicious, looking around");
         timer = 0;
         enemy.Agent.SetDestination(enemy.LastKnownPlayerPosition);
 

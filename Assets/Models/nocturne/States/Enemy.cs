@@ -114,6 +114,9 @@ public class Enemy : MonoBehaviour
     //Metoda sprawdzaj¹ca, czy przeciwnik widzi gracza
     public bool CanSeePlayer()
     {
+        //je¿eli gracz jest w kryjówce, przeciwnik go nie widzi
+        if (player.GetComponent<PlayerInteract>().IsInHideout()) return false;
+
         Vector3 directionToPlayer = (player.transform.position - transform.position).normalized;
 
         float distance = Vector3.Distance(transform.position, player.transform.position);

@@ -12,8 +12,6 @@ public class ChaseState : BaseState
     {
         if (enemy == null) return;
 
-        //je¿eli gracz jest w kryjówce, przeciwnik nie bêdzie go goni³
-        if (enemy.Player.GetComponent<PlayerInteract>().IsInHideout()) return;
 
         enemy.isChasing = true;
 
