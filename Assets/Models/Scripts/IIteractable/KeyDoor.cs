@@ -4,41 +4,35 @@ using UnityEngine;
 
 public class KeyDoor : MonoBehaviour, IInteractable
 {
-    [SerializeField] private Key.KeyType KeyType;
+    [SerializeField] private ItemData requiredKey;
 
-    KeyHolder keyHolder;
+    private Inventory inventory;
 
     private void Start()
     {
-        keyHolder = FindObjectOfType<KeyHolder>();
-    }
-
-    public Key.KeyType GetKeyType()
-    {
-        return KeyType;
-    }
-   
-    public void OpenDoor()
-    {
-        gameObject.SetActive(false);
+        inventory = FindObjectOfType<Inventory>();
     }
 
     public void Interact(Transform interactorTransform)
     {
-        if (keyHolder.ContainsKey(GetKeyType()))
+        if (inventory.ContainsItem(requiredKey))
         {
             OpenDoor();
         }
         else
         {
-            Debug.Log("You need a " + KeyType.ToString() + " key to open this door.");
+            Debug.Log("You need " + requiredKey.itemName);
         }
-       
+    }
+
+    void OpenDoor()
+    {
+        gameObject.SetActive(false);
     }
 
     public string GetInteractText()
     {
-        return "Open " + KeyType.ToString() + " Door";
+        return "Open door";
     }
 
     public Transform GetTransform()

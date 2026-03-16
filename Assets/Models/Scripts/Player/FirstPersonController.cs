@@ -23,7 +23,7 @@ namespace StarterAssets
 
 		[Space(10)]
 		[Tooltip("The height the player can jump")]
-		public float JumpHeight = 1.2f;
+		public float JumpHeight = 0f;
 		[Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
 		public float Gravity = -15.0f;
 
@@ -51,8 +51,16 @@ namespace StarterAssets
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -89.0f;
 
-		// cinemachine
-		private float _cinemachineTargetPitch;
+        [Header("Noise")]
+        public float walkNoise = 3f;
+        public float sprintNoise = 7f;
+		public float fallNoise = 13f;
+        public float noiseInterval = 0.6f;
+
+        float noiseTimer;
+
+        // cinemachine
+        private float _cinemachineTargetPitch;
 
 		// player
 		private float _speed;
@@ -197,7 +205,26 @@ namespace StarterAssets
 
 			// move the player
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
-		}
+
+            if (_controller.velocity.magnitude > 0.2f && Grounded)
+            {
+                noiseTimer += Time.deltaTime;
+
+                if (noiseTimer >= noiseInterval)
+                {
+                    if (_input.sprint)
+                    {
+                        NoiseSystem.MakeNoise(transform.position, sprintNoise);
+                    }
+                    else
+                    {
+                        NoiseSystem.MakeNoise(transform.position, walkNoise);
+                    }
+
+                    noiseTimer = 0f;
+                }
+            }
+        }
 
 		private void JumpAndGravity()
 		{
@@ -238,14 +265,16 @@ namespace StarterAssets
 
 				// if we are not grounded, do not jump
 				_input.jump = false;
-			}
+				Debug.Log("You fall, you made noise!");
+                NoiseSystem.MakeNoise(transform.position, fallNoise);
+            }
 
 			// apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
 			if (_verticalVelocity < _terminalVelocity)
 			{
 				_verticalVelocity += Gravity * Time.deltaTime;
 			}
-		}
+        }
 
 		private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
 		{
@@ -265,5 +294,19 @@ namespace StarterAssets
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
 		}
-	}
+
+		public void SetImmovable()
+		{
+			MoveSpeed = 0f;
+			SprintSpeed = 0f;
+			TopClamp = 0f;
+			BottomClamp = 0f;
+        }
+
+        public void SetMovable()
+        {
+            MoveSpeed = 4f;
+            SprintSpeed = 6f;
+        }
+    }
 }

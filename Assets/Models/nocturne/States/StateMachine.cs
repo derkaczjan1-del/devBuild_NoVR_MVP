@@ -7,12 +7,21 @@ public class StateMachine : MonoBehaviour
 
     public BaseState activeState;
     public PatrolState patrolState;
-
+    public ChaseState chaseState;
+    public SuspicionState suspicionState;
+    public AttackState attackState;
+    public InvestigateNoiseState investigateNoiseState;
     public void Initialise()
     {
         patrolState = new PatrolState();
+        chaseState = new ChaseState();
+        suspicionState = new SuspicionState();
+        attackState = new AttackState();
+        investigateNoiseState = new InvestigateNoiseState();
+
         ChangeState(patrolState);
     }
+
 
     // Start is called before the first frame update
     void Start()
@@ -47,5 +56,10 @@ public class StateMachine : MonoBehaviour
             activeState.enemy = GetComponent<Enemy>();
             activeState.Enter();
         }
+    }
+
+    public bool IsInState(BaseState state)
+    {
+        return activeState == state;
     }
 }

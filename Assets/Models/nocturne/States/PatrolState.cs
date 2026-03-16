@@ -8,11 +8,24 @@ public class PatrolState : BaseState
     public int waypointIndex;
     public override void Enter()
     {
-        
+        enemy.Agent.isStopped = false;
+        enemy.WasRecentlySuspicious = false;
     }
 
     public override void Perform()
     {
+        //szansa, ¿e sprawdzi co jest za nim
+        enemy.CheckBehind();
+        //wykonuje obrót
+        enemy.HandleLookAround();
+
+        //je¿eli zobaczy gracza, a ten nie jest w kryjówce
+        if (enemy.CanSeePlayer())
+        {
+            stateMachine.ChangeState(stateMachine.chaseState);
+        }
+        
+        //system patrolowania, przechodzenie miêdzy waypointami
         PatrolCycle();
     }
 
@@ -25,7 +38,11 @@ public class PatrolState : BaseState
     {
         if(enemy.Agent.remainingDistance < 0.2f)
         {
-            if(waypointIndex < enemy.path.waypoints.Count-1)
+            //losowa szansa, ¿e przeciwnik bêdzie siê rozgl¹da³ dooko³a
+            enemy.TryLookAround();
+            
+
+            if (waypointIndex < enemy.path.waypoints.Count-1)
             {
                 waypointIndex++;
             }

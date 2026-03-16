@@ -1,21 +1,59 @@
+using StarterAssets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerInteract : MonoBehaviour
 {
-[SerializeField] float playerReach = 2f;
+    FirstPersonController firstPersonController;
+
+    bool inHideout = false;
+    Vector3 playerLastPostion;
+
+    [SerializeField] float playerReach = 2f;
+
+    void Start()
+    {
+            firstPersonController = GetComponent<FirstPersonController>();
+    }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) &&!inHideout)
         {
             IInteractable interactable = GetInteractableObject();
             if (interactable != null)
             {
-                interactable.Interact(transform);
+                if(interactable.ToString().Contains("Hideout") && !inHideout)
+                {
+                    Debug.Log("Interacting with hideout");
+                    inHideout = true;
+                    playerLastPostion = this.transform.position;
+                    Debug.Log("Player last position: " + playerLastPostion);
+                    firstPersonController.SetImmovable();
+                    this.gameObject.SetActive(false);
+                    interactable.Interact(transform);
+                    this.gameObject.transform.Rotate(0, 180, 0);
+                    this.gameObject.SetActive(true);
+                }
+                else interactable.Interact(transform);
+
             }
         }
+        else if(Input.GetKeyDown(KeyCode.E) && inHideout)
+        {
+            if (playerLastPostion != null)
+            {
+                Debug.Log("Leaving hideout");
+                inHideout = false;
+                this.gameObject.SetActive(false);
+                gameObject.transform.position = playerLastPostion;
+                this.gameObject.SetActive(true);
+                firstPersonController.SetMovable();
+            }
+            else Debug.LogError("Player last position is null, cant't leave hideout!");
+        }
+
     }
 
     public IInteractable GetInteractableObject()
@@ -48,4 +86,10 @@ public class PlayerInteract : MonoBehaviour
 
         return closestInteractable;
     }
+
+    public bool IsInHideout()
+    {
+        return inHideout;
+    }
+
 }

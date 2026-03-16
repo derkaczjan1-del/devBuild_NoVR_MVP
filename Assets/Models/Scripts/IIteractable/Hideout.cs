@@ -6,22 +6,24 @@ using UnityEngine;
 public class Hideout : MonoBehaviour, IInteractable
 {
     public Transform player, hideLocation;
-    public GameObject playerGameObject;
+    string interactText = "Hide!";
 
     void Teleport()
     {
-        playerGameObject.SetActive(false);
         player.position = hideLocation.position;
-        player.Rotate(0,180,0);
-        playerGameObject.SetActive(true);
     }
+
     public void Interact(Transform interactorTransform)
     {
         Teleport();
     }
     public string GetInteractText()
     {
-        return "Hide!";
+        if (player.GetComponent<PlayerInteract>().IsInHideout())
+        {
+            return interactText = "Leave hideout";
+        }
+        return interactText = "Hide!";
     }
 
     public Transform GetTransform()
