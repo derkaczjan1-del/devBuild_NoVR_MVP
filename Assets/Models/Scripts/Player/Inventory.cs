@@ -5,6 +5,8 @@ public class Inventory : MonoBehaviour
 {
     [SerializeField] private int maxSlots = 25;
 
+    public System.Action onInventoryChanged;
+
     private List<ItemData> items = new List<ItemData>();
 
     public bool AddItem(ItemData item)
@@ -12,6 +14,8 @@ public class Inventory : MonoBehaviour
         if (items.Count >= maxSlots) return false;
 
         items.Add(item);
+        //powiadomienie UI o zmianie ekwipunku
+        onInventoryChanged?.Invoke();
         return true;
     }
 

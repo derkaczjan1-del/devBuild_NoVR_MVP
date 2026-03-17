@@ -4,33 +4,45 @@ using UnityEngine;
 
 public class Key : MonoBehaviour, IInteractable
 {
-    [SerializeField] private KeyType keyType;
+    [SerializeField] private ItemData item;
+    [SerializeField] InteractableType interactableType;
 
-    KeyHolder keyHolder;
+    private Inventory inventory;
     // Start is called before the first frame update
     public enum KeyType { Gold, Red, Blue }
     private void Start()
     {
-        keyHolder = FindObjectOfType<KeyHolder>();
+        inventory = FindObjectOfType<Inventory>();
     }
 
-    public KeyType GetKeyType()
+    public ItemData GetKeyType()
     {
-        return keyType;
+        return item;
     }
 
     public void Interact(Transform interactorTransform)
     {
-        keyHolder.AddKey(GetKeyType());
-        Destroy(gameObject);
+        if (inventory.AddItem(item))
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Debug.Log("Inventory full!");
+        }
     }
 
-    public string GetInteractText()
+    public string GetInteractText(Transform interactorTransform)
     {
-        return "Pick up " + keyType.ToString() + " Key";
+        return ("Pick up " + item.ToString() + " Key");
     }
     public Transform GetTransform()
     {
         return transform;
+    }
+
+    public InteractableType GetInteractableType()
+    {
+        return InteractableType.Pickup;
     }
 }

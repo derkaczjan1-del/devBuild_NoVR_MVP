@@ -12,5 +12,5 @@ public enum ItemType
 {
     Key,
     Consumable,
-    Quest
+    Hideout
 }

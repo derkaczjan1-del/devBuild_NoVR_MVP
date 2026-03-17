@@ -3,27 +3,23 @@ using UnityEngine;
 public class Pickup : MonoBehaviour, IInteractable
 {
     [SerializeField] private ItemData item;
+    [SerializeField] InteractableType interactableType;
 
     private Inventory inventory;
 
     private void Start()
     {
         inventory = FindObjectOfType<Inventory>();
+
     }
 
     public void Interact(Transform interactorTransform)
     {
-        if (inventory.AddItem(item))
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Debug.Log("Inventory full!");
-        }
+        inventory.AddItem(item);
+        Destroy(gameObject);
     }
 
-    public string GetInteractText()
+    public string GetInteractText(Transform interactorTransform)
     {
         return "Pick up " + item.itemName;
     }
@@ -31,5 +27,10 @@ public class Pickup : MonoBehaviour, IInteractable
     public Transform GetTransform()
     {
         return transform;
+    }
+
+    public InteractableType GetInteractableType()
+        {
+            return InteractableType.Pickup;
     }
 }

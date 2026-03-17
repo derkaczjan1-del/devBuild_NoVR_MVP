@@ -5,25 +5,29 @@ using UnityEngine;
 
 public class Hideout : MonoBehaviour, IInteractable
 {
-    public Transform player, hideLocation;
-    string interactText = "Hide!";
 
-    void Teleport()
-    {
-        player.position = hideLocation.position;
-    }
+    [SerializeField] InteractableType interactableType;
+
+    public Transform hideLocation;
+
 
     public void Interact(Transform interactorTransform)
     {
-        Teleport();
+        interactorTransform.position = hideLocation.position;
     }
-    public string GetInteractText()
+
+    public string GetInteractText(Transform interactorTransform)
     {
-        if (player.GetComponent<PlayerInteract>().IsInHideout())
         {
-            return interactText = "Leave hideout";
+            PlayerInteract player = interactorTransform.GetComponent<PlayerInteract>();
+
+            if (player != null && player.IsInHideout())
+            {
+                return "Leave hideout";
+            }
+
+            return "Hide!";
         }
-        return interactText = "Hide!";
     }
 
     public Transform GetTransform()
@@ -31,6 +35,9 @@ public class Hideout : MonoBehaviour, IInteractable
         return transform;
     }
 
-    
+    public InteractableType GetInteractableType()
+    {
+        return InteractableType.Hideout;
+    }
 
 }

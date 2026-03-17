@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class InventorySlotUI : MonoBehaviour
 {
     [SerializeField] private Image icon;
+    [SerializeField] private GameObject selectedBorder;
 
     public void SetItem(ItemData item)
     {
@@ -14,5 +15,10 @@ public class InventorySlotUI : MonoBehaviour
     public void Clear()
     {
         icon.enabled = false;
+    }
+
+    public void SetSelected(bool state)
+    {
+        selectedBorder.SetActive(state);
     }
 }

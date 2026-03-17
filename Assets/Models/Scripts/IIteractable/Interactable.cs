@@ -9,6 +9,7 @@ using static Key;
 public class Interactable: MonoBehaviour, IInteractable
 {
     [SerializeField] private string interactText;
+    [SerializeField] InteractableType interactableType;
 
     Outline outline;
     public string message;
@@ -39,7 +40,7 @@ public class Interactable: MonoBehaviour, IInteractable
         outline.enabled = true;
     }*/
 
-    public string GetInteractText()
+    public string GetInteractText(Transform interactorTransform)
     {
         return interactText;
     }
@@ -47,5 +48,10 @@ public class Interactable: MonoBehaviour, IInteractable
     public Transform GetTransform()
     {
         return transform;
+    }
+
+    public InteractableType GetInteractableType()
+    {
+        return InteractableType.Pickup;
     }
 }

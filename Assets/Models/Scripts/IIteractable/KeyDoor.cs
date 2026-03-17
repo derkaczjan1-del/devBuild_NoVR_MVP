@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static IInteractable;
 
 public class KeyDoor : MonoBehaviour, IInteractable
 {
     [SerializeField] private ItemData requiredKey;
+    [SerializeField] InteractableType interactableType;
 
     private Inventory inventory;
 
@@ -30,7 +32,7 @@ public class KeyDoor : MonoBehaviour, IInteractable
         gameObject.SetActive(false);
     }
 
-    public string GetInteractText()
+    public string GetInteractText(Transform interactorTransform)
     {
         return "Open door";
     }
@@ -38,5 +40,10 @@ public class KeyDoor : MonoBehaviour, IInteractable
     public Transform GetTransform()
     {
         return transform;
+    }
+
+    public InteractableType GetInteractableType()
+    {
+        return InteractableType.Door;
     }
 }

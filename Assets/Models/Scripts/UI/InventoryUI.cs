@@ -5,6 +5,12 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private Inventory inventory;
     [SerializeField] private InventorySlotUI[] slots;
 
+    void Start()
+    {
+        //aktualizacja UI przy zmianie ekwipunku
+        inventory.onInventoryChanged += Refresh;
+    }
+
     public void Refresh()
     {
         var items = inventory.GetItems();
