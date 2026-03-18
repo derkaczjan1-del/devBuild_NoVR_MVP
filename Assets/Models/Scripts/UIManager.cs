@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     {
         IInteractable interactable = playerInteract.GetCurrentInteractable();
 
+
         if (interactable != lastInteractable)
         {
             if (interactable != null)
@@ -33,6 +34,11 @@ public class UIManager : MonoBehaviour
             }
 
             lastInteractable = interactable;
+        }
+        else if (interactable != null)
+        {
+            //odœwie¿ tekst nawet jeœli obiekt siê nie zmieni³
+            interactText.text = interactable.GetInteractText(playerInteract.transform);
         }
         //fade in/out textu
         canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, targetAlpha, Time.deltaTime * fadeSpeed);

@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb66ffcb100c19045a8fb168f5aaabc5, type: 3}
-  m_Name: GoldKey
+  m_Name: Crowbar
   m_EditorClassIdentifier: 
-  itemName: Gold Key
-  icon: {fileID: 21300000, guid: 37efd1fb229a34e4a9e08ad6044dbbac, type: 3}
-  itemType: 0
-  worldPrefab: {fileID: 0}
+  itemName: Crowbar
+  icon: {fileID: 21300000, guid: f9390a6a72a953541b36a3ec4e2837f1, type: 3}
+  itemType: 2
+  worldPrefab: {fileID: 3717238972217197270, guid: fc40e121b5f6aff4b90c84c680b78647,
+    type: 3}

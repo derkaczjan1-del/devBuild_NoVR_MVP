@@ -21,6 +21,9 @@ public class Hideout : MonoBehaviour, IInteractable
         {
             PlayerInteract player = interactorTransform.GetComponent<PlayerInteract>();
 
+            Debug.Log("Hideout.GetInteractText CALLED");
+            Debug.Log("Player isInHideout: " + (player != null ? player.IsInHideout().ToString() : "NULL"));
+
             if (player != null && player.IsInHideout())
             {
                 return "Leave hideout";

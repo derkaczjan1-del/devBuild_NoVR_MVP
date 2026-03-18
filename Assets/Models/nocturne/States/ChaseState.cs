@@ -12,7 +12,6 @@ public class ChaseState : BaseState
     {
         if (enemy == null) return;
 
-
         enemy.isChasing = true;
 
         float distance = enemy.DistanceToPlayer();
@@ -23,18 +22,14 @@ public class ChaseState : BaseState
             return;
         }
 
-        if (distance > enemy.ChaseDistance)
-        {
-            stateMachine.ChangeState(stateMachine.suspicionState);
-            return;
-        }
-
-        Vector3 playerPos = enemy.Player.transform.position;
-
+        //jeúli widzi gracza - update pozycji
         if (enemy.CanSeePlayer())
         {
-            enemy.Agent.SetDestination(playerPos);
+            enemy.LastKnownPlayerPosition = enemy.Player.transform.position;
         }
+
+        //AWSZE idü do ostatniej znanej pozycji
+        enemy.Agent.SetDestination(enemy.LastKnownPlayerPosition);
     }
 
     public override void Exit()

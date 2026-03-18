@@ -23,7 +23,7 @@ public class PlayerInteract : MonoBehaviour
 
     void Start()
     {
-            firstPersonController = GetComponent<FirstPersonController>();
+        firstPersonController = GetComponent<FirstPersonController>();
     }
 
     void Update()
@@ -38,12 +38,10 @@ public class PlayerInteract : MonoBehaviour
             currentInteractable = GetInteractableObject();
         }
 
+
         //debugowanie, pokazuje w konsoli czy gracz jest w kryjówce i jaki obiekt jest aktualnie interaktywny
         if (inHideout != lastInHideout || currentInteractable != lastDebugInteractable)
         {
-            Debug.Log("InHideout: " + inHideout);
-            Debug.Log("CurrentInteractable: " + currentInteractable);
-            Debug.Log("CurrentHideout: " + currentHideout);
 
             lastInHideout = inHideout;
             lastDebugInteractable = currentInteractable;
@@ -56,9 +54,16 @@ public class PlayerInteract : MonoBehaviour
         }
 
         //debug
-        if (currentInteractable != null)
+        if (currentInteractable != lastDebugInteractable)
         {
-            Debug.Log(currentInteractable.GetInteractText(transform));
+            if(currentInteractable != null) Debug.Log(currentInteractable.GetInteractText(transform));
+
+            lastDebugInteractable = currentInteractable;
+        }
+        //debug
+        if(currentInteractable == null && lastDebugInteractable != null)
+        {
+            Debug.Log("No interactable");
         }
 
         //podœwietlanie obiektu, jeœli jest inny ni¿ ostatnio podœwietlany
@@ -84,10 +89,12 @@ public class PlayerInteract : MonoBehaviour
         {
             if (inHideout && currentHideout != null)
             {
+                Debug.Log("INTERACT pressed on: " + currentInteractable);
                 InteractWith(currentHideout);
             }
             else if (currentInteractable != null)
             {
+                Debug.Log("INTERACT pressed on: " + currentInteractable);
                 InteractWith(currentInteractable);
             }
         }
@@ -98,9 +105,14 @@ public class PlayerInteract : MonoBehaviour
 
     public IInteractable GetInteractableObject()
     {
+        //blokada interakcji gdy w kryjówce
+        if (inHideout) return null;
 
         Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
         RaycastHit hit;
+
+        // Debugowanie Raycasta, pokazuje czerwon¹ liniê w kierunku, w którym jest rzutowany promieñ
+        Debug.DrawRay(Camera.main.transform.position, Camera.main.transform.forward * playerReach, Color.red);
 
         //Raycast do dok³adnego trafiania w obiekty
         if (Physics.Raycast(ray, out hit, playerReach, interactableLayer))
@@ -112,28 +124,55 @@ public class PlayerInteract : MonoBehaviour
         }
 
         //OverlapSphere dla wiêkszych przedmiotów (np. drzwi, kryjówki), które mog¹ byæ trudne do trafienia Raycastem
-        Collider[] colliders = Physics.OverlapSphere(transform.position, playerReach);
+        Collider[] colliders = Physics.OverlapSphere(transform.position, playerReach, interactableLayer);
 
         IInteractable bestInteractable = null;
-        float bestDot = 0.6f;
+        float bestDot = 0.5f; //ni¿sza wartoœæ zwiêksza szansa na interakcjê
+
+        IInteractable bestPickup = null;
+        float bestPickupDot = 0.3f;//ustawiæ w zakresie [0.1, 0,5], im ni¿ej tym ³atwiej podnosiæ przedmioty
 
         foreach (Collider col in colliders)
         {
             if (col.TryGetComponent(out IInteractable interactable))
             {
-                // sprawdzamy czy to nie pickup
-                if (interactable.GetInteractableType() == InteractableType.Pickup)
-                    continue;
+                //nie wyœwietlamy kryjówki, gdy ju¿ jesteœmy w kryjówce
+                if (interactable == currentHideout) continue;
 
                 Vector3 dir = (interactable.GetTransform().position - Camera.main.transform.position).normalized;
                 float dot = Vector3.Dot(Camera.main.transform.forward, dir);
 
-                if (dot > bestDot)
+                // sprawdzamy czy to nie pickup
+                if (interactable.GetInteractableType() == InteractableType.Pickup)
                 {
-                    bestDot = dot;
-                    bestInteractable = interactable;
+                    float distance = Vector3.Distance(Camera.main.transform.position, interactable.GetTransform().position);
+                    float score = dot - (distance * 0.1f); //ustawiæ w zakresie [0.05, 0.2], im wy¿ej tym bardziej preferowane s¹ bliskie przedmioty
+
+                    if (score > bestPickupDot)
+                    {
+                        bestPickupDot = score;
+                        bestPickup = interactable; 
+                    }
                 }
+                else
+                {
+                    //inne obiekty ni¿ pickup
+                    if (dot > bestDot)
+                    {
+                        bestDot = dot;
+                        bestInteractable = interactable;
+                    }
+                }
+
+
+                
             }
+        }
+
+        //najpierw podnoœ pickupy 
+        if(bestPickup != null)
+        {
+            return bestPickup;
         }
 
         return bestInteractable;
@@ -215,6 +254,9 @@ public class PlayerInteract : MonoBehaviour
     }
     public IInteractable GetCurrentInteractable()
     {
+        if (inHideout && currentHideout != null)
+            return currentHideout;
+
         return currentInteractable;
     }
 

@@ -20,6 +20,8 @@ public class SuspicionState : BaseState
         Vector3 directionToPlayer = enemy.LastKnownPlayerPosition - enemy.transform.position;
         directionToPlayer.y = 0;
 
+        if(directionToPlayer == Vector3.zero) return; //zapobiega b³êdowi LookRotation, gdy przeciwnik jest dok³adnie na pozycji gracza
+
         Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
         enemy.transform.rotation = Quaternion.Slerp(enemy.transform.rotation,targetRotation,Time.deltaTime * 2f);
 

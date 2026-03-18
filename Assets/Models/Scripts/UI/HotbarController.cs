@@ -4,8 +4,19 @@ public class HotbarController : MonoBehaviour
 {
     [SerializeField] private Inventory inventory;
     [SerializeField] private InventorySlotUI[] hotbarSlots;
+    [SerializeField] private ItemHolder itemHolder;
+
+    public System.Action onHotbarChanged;
 
     private int selectedIndex = 0;
+    private ItemData crowbar;
+    private ItemData flashlight;
+
+    private void Start()
+    {
+        UpdateHotbar();
+        EquipSelectedItem();
+    }
 
     void Update()
     {
@@ -19,28 +30,67 @@ public class HotbarController : MonoBehaviour
     void SelectSlot(int index)
     {
         selectedIndex = index;
-        RefreshHotbar();
+        UpdateHotbar();
+
+        // Wyposa¿ wybrany przedmiot do rêki gracza
+        EquipSelectedItem();
     }
 
-    void RefreshHotbar()
+    void EquipSelectedItem()
     {
-        var items = inventory.GetItems();
+        ItemData item = GetSelectedItem();
+
+        if (item != null && item.worldPrefab != null)
+        {
+            itemHolder.EquipItem(item.worldPrefab);
+        }
+        else
+        {
+            itemHolder.ClearItem();
+        }
+    }
+
+    void UpdateHotbar()
+    {
+        // Slot 0 = ³om
+        if (crowbar != null)
+            hotbarSlots[0].SetItem(crowbar);
+        else
+            hotbarSlots[0].Clear();
+
+        // Slot 1 = latarka
+        if (flashlight != null)
+            hotbarSlots[1].SetItem(flashlight);
+        else
+            hotbarSlots[1].Clear();
 
         for (int i = 0; i < hotbarSlots.Length; i++)
         {
-            if (i < items.Count)
-                hotbarSlots[i].SetItem(items[i]);
-            else
-                hotbarSlots[i].Clear();
+            hotbarSlots[i].SetSelected(i == selectedIndex);
         }
     }
 
     public ItemData GetSelectedItem()
     {
-        var items = inventory.GetItems();
-        if (selectedIndex < items.Count)
-            return items[selectedIndex];
+        switch (selectedIndex)
+        {
+            case 0: return crowbar;
+            case 1: return flashlight;
+            default: return null;
+        }
+    }
+    public void SetCrowbar(ItemData item)
+    {
+        crowbar = item;
+        UpdateHotbar();
+        EquipSelectedItem();
+        onHotbarChanged?.Invoke();
+    }
 
-        return null;
+    public void SetFlashlight(ItemData item)
+    {
+        flashlight = item;
+        EquipSelectedItem();
+        UpdateHotbar();
     }
 }

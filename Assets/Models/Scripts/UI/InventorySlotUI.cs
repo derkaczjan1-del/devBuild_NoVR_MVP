@@ -10,15 +10,20 @@ public class InventorySlotUI : MonoBehaviour
     {
         icon.sprite = item.icon;
         icon.enabled = true;
+        icon.preserveAspect = true;
     }
 
     public void Clear()
     {
+        if (icon == null) return;
+
+        //wyczyœæ ikonê i ukryj j¹
+        icon.sprite = null;
         icon.enabled = false;
     }
 
     public void SetSelected(bool state)
     {
-        selectedBorder.SetActive(state);
+        if (selectedBorder != null) selectedBorder.SetActive(state);
     }
 }

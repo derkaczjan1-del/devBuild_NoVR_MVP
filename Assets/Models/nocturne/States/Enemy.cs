@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Rendering.Universal;
+using static UnityEngine.UI.Image;
 
 public class Enemy : MonoBehaviour
 {
     private StateMachine stateMachine;
     private NavMeshAgent agent;
-    public NavMeshAgent Agent { get=>agent; }
+    public NavMeshAgent Agent { get => agent; }
 
     [Header("Movement")]
     [SerializeField] float patrolSpeed = 2f;
@@ -20,7 +22,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] float suspicionTime = 3f;
     [SerializeField] float backCheckDistance = 2.5f;
     [SerializeField] float attackRange = 1f;
-    
+
     [Header("Eyesight")]
     [SerializeField] float viewDistance = 10f;
     [SerializeField] float viewAngle = 90f;
@@ -32,11 +34,21 @@ public class Enemy : MonoBehaviour
     [SerializeField] float lookAroundChance = 0.15f;
     [SerializeField] float lookAroundDuration = 2f;
 
+    [Header("Flashlight Detection")]
+    [SerializeField] float flashlightDetectTime = 0.2f;
+    [SerializeField] float flashlightDetectDistance = 5f;
+    [SerializeField] float flashlightSuspicionDistance = 8f;
+    [SerializeField] float flashlightFOV = 120f;
+    [SerializeField] LayerMask visionBlockMask;
+
     [Header("Others")]
     [SerializeField] Canvas deadCanvas;
     [SerializeField] private string currentState;
+    FlashlightController flashlight;
+    Light flashlightLight;
 
     float backCheckTimer;
+    float flashlightTimer = 0f;
     float lookTimer;
     bool lookingAround;
     Quaternion lookTargetRotation;
@@ -52,11 +64,13 @@ public class Enemy : MonoBehaviour
     public bool WasRecentlySuspicious { get; set; }
     public bool isChasing = false;
 
+    bool seesFlashlight = false;
     bool playerDead = false;
 
     // Start is called before the first frame update
     void Start()
     {
+
         stateMachine = GetComponent<StateMachine>();
         agent = GetComponent<NavMeshAgent>();
         stateMachine.Initialise();
@@ -68,6 +82,15 @@ public class Enemy : MonoBehaviour
         agent.acceleration = accelerationSpeed;
         agent.updateRotation = false;
 
+        flashlight = FindObjectOfType<FlashlightController>();
+        if (flashlight == null)
+        {
+            Debug.LogError("FlashlightController NOT FOUND!");
+        }
+        else if (flashlightLight == null)
+        {
+            Debug.LogError("Flashlight LIGHT is NULL!");
+        }
     }
 
     // Update is called once per frame
@@ -77,6 +100,11 @@ public class Enemy : MonoBehaviour
         HandleRotation();
         //kontroluje prêdkoœæ obrotu przeciwnika, spowalniaj¹c go podczas ostrych zakrêtów
         HandleTurningSpeed();
+
+        //sprawdzanie czy przeciwnik widzi latarkê
+        CheckFlashlight();
+
+
         currentState = stateMachine.activeState.GetType().Name;
     }
 
@@ -95,10 +123,10 @@ public class Enemy : MonoBehaviour
     //Metoda obliczaj¹ca odleg³oœæ miêdzy przeciwnikiem a graczem
     public float DistanceToPlayer()
     {
-        
+
         return Vector3.Distance(player.transform.position, transform.position);
     }
-    
+
     public bool IsPlayerDead()
     {
         return playerDead;
@@ -115,7 +143,7 @@ public class Enemy : MonoBehaviour
     public bool CanSeePlayer()
     {
         //je¿eli gracz jest w kryjówce, przeciwnik go nie widzi
-        if (player.GetComponent<PlayerInteract>().IsInHideout()) return false;
+        bool playerHidden = player.GetComponent<PlayerInteract>().IsInHideout();
 
         Vector3 directionToPlayer = (player.transform.position - transform.position).normalized;
 
@@ -130,16 +158,23 @@ public class Enemy : MonoBehaviour
         {
             if (!Physics.Raycast(transform.position + Vector3.up * 1.6f, directionToPlayer, distance, obstacleMask))
             {
+                //jeœli gracz w kryjówce — trudniej go zobaczyæ
+                if (playerHidden)
+                {
+                    //tylko bardzo blisko
+                    if (distance < 2f)
+                    {
+                        LastKnownPlayerPosition = player.transform.position;
+                        return true;
+                    }
+
+                    return false;
+                }
+
                 LastKnownPlayerPosition = player.transform.position;
                 return true;
             }
         }
-
-        if (angle < peripheralVisionAngle / 2)
-        {
-            stateMachine.ChangeState(stateMachine.suspicionState);
-        }
-
         return false;
     }
 
@@ -172,7 +207,7 @@ public class Enemy : MonoBehaviour
             float randomAngle = Random.Range(-160f, 160f);
             lookTargetRotation = Quaternion.Euler(0, transform.eulerAngles.y + randomAngle, 0);
         }
-    
+
     }
 
     //Metoda pwooduj¹ca siê rozgl¹danie przeciwnika
@@ -277,5 +312,105 @@ public class Enemy : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + right * viewDistance);
     }
 
+    void CheckFlashlight()
+    {
 
+        // znajdŸ latarkê jeœli jeszcze jej nie mamy
+        if (flashlight == null)
+        {
+            flashlight = FlashlightController.Instance;
+
+            if (flashlight != null)
+            {
+                flashlightLight = flashlight.GetLight();
+            }
+        }
+
+        //zabezpieczenie przed nullem
+        if (flashlight == null || flashlightLight == null || !flashlight.IsOn())
+            return;
+
+        //debug, rysowanie linii od przeciwnika do latarki
+        Debug.DrawLine(transform.position + Vector3.up * 1.6f, flashlightLight.transform.position, Color.red);
+
+        seesFlashlight = false;
+
+        Vector3 lightPos = flashlightLight.transform.position;
+        Vector3 lightDir = flashlightLight.transform.forward;
+
+
+        float angleToLight = Vector3.Angle(transform.forward, (lightPos - transform.position));
+
+        // przeciwnik ignoruje œwiat³o za plecami
+        if (angleToLight > flashlightFOV)
+        {
+            return; 
+        }
+
+        PlayerInteract playerInteract = Player.GetComponent<PlayerInteract>();
+        //je¿eli gracz istnieje i jest w kryjówce, zwróæ prawdê
+        bool playerHidden = playerInteract != null && playerInteract.IsInHideout();
+
+        //wyliczenie kierunku od œwiat³a do przeciwnika
+        Vector3 toEnemy = transform.position - lightPos;
+        float distance = toEnemy.magnitude;
+        Vector3 dirToEnemy = toEnemy.normalized;
+
+        float angle = Vector3.Angle(lightDir, dirToEnemy);
+
+        Vector3 origin = transform.position + Vector3.up * 1.6f;
+        Vector3 direction = (lightPos - origin).normalized;
+
+        //Czy przeciwnik jest w sto¿ku œwiat³a i widzi to œwiat³o (jest w ustalonych stopniach k¹tu [ flashlightFOV ] )
+        if (angle < flashlightLight.spotAngle / 2f && distance < flashlightLight.range && angleToLight < flashlightFOV)
+        {
+            //czy gracz znajduje siê w kryjówce
+            if (playerHidden)
+            {
+                float distToEnemy = Vector3.Distance(lightPos, transform.position);
+
+                if (distToEnemy < flashlightDetectDistance)
+                {
+                    seesFlashlight = true;
+                    Debug.Log("Enemy sees flashlight from hideout!");
+                }
+                else if(distToEnemy < flashlightSuspicionDistance)
+                {
+                    LastKnownPlayerPosition = lightPos;
+
+                    if (!stateMachine.IsInState(stateMachine.suspicionState))
+                    {
+                        stateMachine.ChangeState(stateMachine.suspicionState);
+                    }
+                }
+            }
+            else
+            {
+                // Raycast od œwiat³a do przeciwnika, sprawdzaj¹c czy coœ zas³ania œwiat³o
+                if (!Physics.Raycast(origin, direction, distance, visionBlockMask))
+                {
+                    seesFlashlight = true;
+                }
+            }
+        }
+        //je¿eli przeciwnik widzi œwiat³o, wystaryuj timer, jeœli przekroczy próg czasu, przejdŸ do stanu poœcigu
+        if (seesFlashlight)
+        {
+            flashlightTimer += Time.deltaTime;
+
+            if (flashlightTimer >= flashlightDetectTime)
+            {
+                Debug.Log("Enemy detected flashlight! Starting chase.");
+                if (!stateMachine.IsInState(stateMachine.chaseState))
+                {
+                    stateMachine.ChangeState(stateMachine.chaseState);
+                }
+            }
+        }
+        else
+        {
+            flashlightTimer -= Time.deltaTime * 0.5f; // wolne opadanie timera
+        }
+        flashlightTimer = Mathf.Clamp(flashlightTimer, 0f, flashlightDetectTime);
+    }
 }
